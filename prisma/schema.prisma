@@ -6,3 +6,62 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id String @id @default(uuid(7))
+  username String @unique
+  name String
+  email String @unique
+  password String
+  role Role @default(USER)
+  followedBy Follow[] @relation("followedBy")
+  following Follow[] @relation("following")
+  posts Post[]
+  likes Like[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  
+  @@map("users")
+}
+
+model Follow {
+  followedBy User @relation("followedBy", fields: [followedById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  followedById String
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  followingId String
+
+  @@id([followingId, followedById])
+  @@map("follows")
+}
+
+model Post {
+  id String @id @default(ulid()) @unique
+  content String
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  authorId String
+  parentId String?
+  parent Post? @relation("ParentComments", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  children Post[] @relation("ParentComments")
+  likes Like[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  @@map("posts")
+}
+
+model Like {
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  postId String
+
+  @@id([userId, postId])
+  @@map("likes")
+}
