@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsLowercase,
   IsNotEmpty,
   IsString,
   IsStrongPassword,
@@ -12,6 +13,7 @@ export class CreateUserDTO {
   @IsNotEmpty()
   @MinLength(4)
   @MaxLength(60)
+  @IsLowercase()
   username: string;
 
   @IsString()
