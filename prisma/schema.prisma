@@ -20,8 +20,8 @@ model User {
   email String @unique
   password String
   role Role @default(USER)
-  followedBy Follow[] @relation("followedBy")
-  following Follow[] @relation("following")
+  followers Follow[] @relation("UserFollowers")
+  following Follow[] @relation("UserFollowing")
   posts Post[]
   likes Like[]
 
@@ -32,12 +32,12 @@ model User {
 }
 
 model Follow {
-  followedBy User @relation("followedBy", fields: [followedById], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  followedById String
-  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  follower User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId String
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
   followingId String
 
-  @@id([followingId, followedById])
+  @@id([followerId, followingId])
   @@map("follows")
 }
 
