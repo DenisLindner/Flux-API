@@ -1,41 +1,42 @@
-import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { CurrentUserDTO } from './dto/current-user.dto';
+import { UpdateUserDTO } from './dto/update-user.dto';
+import { Roles } from 'src/auth/decorators/role.decorator';
+import { IsPublic } from 'src/auth/decorators/is-public.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly service: UsersService) {}
-
-  @Post('follow/:id')
-  async follow(
-    @CurrentUser() user: CurrentUserDTO,
-    @Param('id') followerId: string,
-  ) {
-    return this.service.followUser(followerId, user.sub);
-  }
-
-  @Post('unfollow/:id')
-  @HttpCode(200)
-  async unfollow(
-    @CurrentUser() user: CurrentUserDTO,
-    @Param('id') followerId: string,
-  ) {
-    return this.service.unfollowUser(followerId, user.sub);
-  }
 
   @Get('me')
   async getMeProfile(@CurrentUser() user: CurrentUserDTO) {
     return this.service.findById(user.sub);
   }
 
-  @Get('followers/:id')
-  async getUserFollowers(@Param('id') id: string) {
-    return this.service.getUserFollowers(id);
+  @Get(':id')
+  @IsPublic()
+  async getProfile(@Param('id') id: string) {
+    return this.service.findById(id);
   }
 
-  @Get('following/:id')
-  async getUserFollowing(@Param('id') id: string) {
-    return this.service.getUserFollowing(id);
+  @Patch('me')
+  async updateMeProfile(
+    @CurrentUser() user: CurrentUserDTO,
+    @Body() dto: UpdateUserDTO,
+  ) {
+    return this.service.updateUser(user.sub, dto);
+  }
+
+  @Delete('me')
+  async deleteMeProfile(@CurrentUser() user: CurrentUserDTO) {
+    return this.service.deleteUser(user.sub);
+  }
+
+  @Delete(':id')
+  @Roles('ADMIN')
+  async deleteById(@Param('id') id: string) {
+    return this.service.deleteUser(id);
   }
 }

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDTO } from './dto/create-user.dto';
+import { UpdateUserDTO } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -56,69 +57,52 @@ export class UsersService {
     return { ...user, followers, following };
   }
 
-  async followUser(followerId: string, followingId: string) {
-    const isFollowed = await this.prisma.follow.findUnique({
-      where: {
-        followerId_followingId: {
-          followerId,
-          followingId,
-        },
+  async existsById(id: string) {
+    return await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
       },
     });
+  }
 
-    if (isFollowed) {
-      throw new ConflictException('User is already follewed by this user');
+  async updateUser(id: string, dto: UpdateUserDTO) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    await this.prisma.follow.create({ data: { followerId, followingId } });
-  }
+    if (dto.username) {
+      const user = await this.findByUsername(dto.username);
 
-  async unfollowUser(followerId: string, followingId: string) {
-    const isFollowed = await this.prisma.follow.findUnique({
-      where: {
-        followerId_followingId: {
-          followerId,
-          followingId,
-        },
-      },
-    });
-
-    if (!isFollowed) {
-      throw new ConflictException('User not follewed this user');
+      if (user) {
+        throw new ConflictException('User already exists with this username');
+      }
     }
 
-    await this.prisma.follow.delete({
-      where: { followerId_followingId: { followerId, followingId } },
-    });
-  }
-
-  async getUserFollowers(id: string) {
-    return await this.prisma.follow.findMany({
-      where: { followerId: id },
-      select: {
-        following: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-          },
-        },
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        username: dto?.username ?? undefined,
+        name: dto?.name ?? undefined,
       },
     });
   }
 
-  async getUserFollowing(id: string) {
-    return await this.prisma.follow.findMany({
-      where: { followingId: id },
-      select: {
-        follower: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-          },
-        },
-      },
+  async deleteUser(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true },
     });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.delete({ where: { id } });
   }
 }

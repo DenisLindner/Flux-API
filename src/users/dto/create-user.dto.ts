@@ -1,4 +1,5 @@
 import {
+  IsAlphanumeric,
   IsEmail,
   IsLowercase,
   IsNotEmpty,
@@ -6,6 +7,7 @@ import {
   IsStrongPassword,
   MaxLength,
   MinLength,
+  NotContains,
 } from 'class-validator';
 
 export class CreateUserDTO {
@@ -14,6 +16,8 @@ export class CreateUserDTO {
   @MinLength(4)
   @MaxLength(60)
   @IsLowercase()
+  @NotContains(' ', { message: 'The username cannot have blank spaces' })
+  @IsAlphanumeric('en-US')
   username: string;
 
   @IsString()
