@@ -57,20 +57,8 @@ export class UsersService {
     return { ...user, followers, following };
   }
 
-  async existsById(id: string) {
-    return await this.prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-      },
-    });
-  }
-
   async updateUser(id: string, dto: UpdateUserDTO) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { id: true },
-    });
+    const user = await this.existsById(id);
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -94,15 +82,21 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { id: true },
-    });
+    const user = await this.existsById(id);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     await this.prisma.user.delete({ where: { id } });
+  }
+
+  async existsById(id: string) {
+    return await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+      },
+    });
   }
 }

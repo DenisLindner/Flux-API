@@ -82,6 +82,12 @@ export class FollowsService {
   }
 
   async getUserFollowers(id: string) {
+    const user = await this.usersService.existsById(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return await this.prisma.follow.findMany({
       where: { followerId: id },
       select: {
@@ -97,6 +103,12 @@ export class FollowsService {
   }
 
   async getUserFollowing(id: string) {
+    const user = await this.usersService.existsById(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return await this.prisma.follow.findMany({
       where: { followingId: id },
       select: {
