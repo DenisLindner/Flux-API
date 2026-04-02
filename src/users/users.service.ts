@@ -81,7 +81,23 @@ export class UsersService {
     });
   }
 
-  async deleteUser(id: string) {
+  async deleteMyUser(id: string) {
+    const user = await this.existsById(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.delete({ where: { id } });
+  }
+
+  async deleteUser(id: string, sub: string) {
+    const authorRequest = await this.existsById(sub);
+
+    if (!authorRequest) {
+      throw new NotFoundException('User not found');
+    }
+
     const user = await this.existsById(id);
 
     if (!user) {
