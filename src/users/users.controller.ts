@@ -4,8 +4,10 @@ import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { UpdateUserDTO } from './dto/update-user.dto';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { IsPublic } from 'src/auth/decorators/is-public.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('users')
+@ApiBearerAuth('token')
 export class UsersController {
   constructor(private readonly service: UsersService) {}
 

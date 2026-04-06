@@ -16,8 +16,10 @@ import { Roles } from 'src/auth/decorators/role.decorator';
 import { IsPublic } from 'src/auth/decorators/is-public.decorator';
 import { PaginationDTO } from './dto/pagination.dto';
 import { UpdatePostDTO } from './dto/update-user.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('posts')
+@ApiBearerAuth('token')
 export class PostsController {
   constructor(private readonly service: PostsService) {}
 

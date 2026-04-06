@@ -3,8 +3,10 @@ import { FollowsService } from './follows.service';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { CurrentUserDTO } from 'src/users/dto/current-user.dto';
 import { IsPublic } from 'src/auth/decorators/is-public.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller()
+@ApiBearerAuth('token')
 export class FollowsController {
   constructor(private readonly service: FollowsService) {}
 
