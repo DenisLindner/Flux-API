@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -95,5 +96,17 @@ export class PostsController {
   @Roles('ADMIN')
   async deletePost(@Param('id') id: string, @CurrentUser('sub') sub: string) {
     return this.service.deleteById(id, sub);
+  }
+
+  @Post('like/:id')
+  @HttpCode(200)
+  async like(@Param('id') postId: string, @CurrentUser('sub') sub: string) {
+    return this.service.like(postId, sub);
+  }
+
+  @Delete('unlike/:id')
+  @HttpCode(200)
+  async unlike(@Param('id') postId: string, @CurrentUser('sub') sub: string) {
+    return this.service.unlike(postId, sub);
   }
 }
