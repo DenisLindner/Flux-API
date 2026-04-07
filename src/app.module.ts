@@ -7,9 +7,24 @@ import { AuthTokenGuard } from './auth/guards/auth-token.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { FollowsModule } from './follows/follows.module';
 import { PostsModule } from './posts/posts.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, FollowsModule, PostsModule],
+  imports: [
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    FollowsModule,
+    PostsModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 6000,
+          limit: 10,
+        },
+      ],
+    }),
+  ],
   controllers: [],
   providers: [
     {
@@ -19,6 +34,10 @@ import { PostsModule } from './posts/posts.module';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
