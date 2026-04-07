@@ -48,7 +48,7 @@ export class UsersService {
     }
 
     const followers = await this.prisma.follow.count({
-      where: { followerId: user.id },
+      where: { followingId: user.id },
     });
     const following = await this.prisma.follow.count({
       where: { followerId: user.id },
