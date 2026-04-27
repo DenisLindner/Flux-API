@@ -65,9 +65,9 @@ export class UsersService {
     }
 
     if (dto.username) {
-      const user = await this.findByUsername(dto.username);
+      const userWithSameUsername = await this.findByUsername(dto.username);
 
-      if (user) {
+      if (userWithSameUsername && userWithSameUsername.id !== id) {
         throw new ConflictException('User already exists with this username');
       }
     }

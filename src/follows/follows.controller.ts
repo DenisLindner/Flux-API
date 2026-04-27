@@ -13,18 +13,18 @@ export class FollowsController {
   @Post('follow/:id')
   async follow(
     @CurrentUser() user: CurrentUserDTO,
-    @Param('id') followerId: string,
+    @Param('id') followingId: string,
   ) {
-    return this.service.followUser(followerId, user.sub);
+    return this.service.followUser(user.sub, followingId);
   }
 
   @Post('unfollow/:id')
   @HttpCode(200)
   async unfollow(
     @CurrentUser() user: CurrentUserDTO,
-    @Param('id') followerId: string,
+    @Param('id') followingId: string,
   ) {
-    return this.service.unfollowUser(followerId, user.sub);
+    return this.service.unfollowUser(user.sub, followingId);
   }
 
   @Get('followers/me')
