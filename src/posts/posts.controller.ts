@@ -46,7 +46,7 @@ export class PostsController {
     return this.service.findCommentsById(id);
   }
 
-  @Get('users/me')
+  @Get('user/me')
   async getMyPosts(
     @CurrentUser('sub') sub: string,
     @Query() pagination: PaginationDTO,
@@ -54,7 +54,7 @@ export class PostsController {
     return this.service.findPostsByUserId(sub, pagination);
   }
 
-  @Get('users/:id')
+  @Get('user/:id')
   @IsPublic()
   async getPostsByUserId(
     @Param('id') id: string,
@@ -63,7 +63,7 @@ export class PostsController {
     return this.service.findPostsByUserId(id, pagination);
   }
 
-  @Get('users/comments/me')
+  @Get('comments/me')
   async getMyComments(
     @CurrentUser('sub') sub: string,
     @Query() pagination: PaginationDTO,
@@ -71,7 +71,7 @@ export class PostsController {
     return this.service.findCommentsByUserId(sub, pagination);
   }
 
-  @Get('users/comments/:id')
+  @Get('comments/user/:id')
   @IsPublic()
   async getCommentsByUserId(
     @Param('id') id: string,
@@ -89,7 +89,7 @@ export class PostsController {
     return this.service.updateMyPostById(id, sub, dto);
   }
 
-  @Delete('/me/:id')
+  @Delete('me/:id')
   async deleteMyPost(@Param('id') id: string, @CurrentUser('sub') sub: string) {
     return this.service.deleteMyPostById(id, sub);
   }

@@ -18,16 +18,16 @@ export class CreateUserDTO {
   @IsLowercase()
   @NotContains(' ', { message: 'The username cannot have blank spaces' })
   @IsAlphanumeric('en-US')
-  username: string;
+  username!: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(4)
   @MaxLength(60)
-  name: string;
+  name!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsStrongPassword({
     minLength: 8,
@@ -35,5 +35,5 @@ export class CreateUserDTO {
     minSymbols: 1,
     minUppercase: 1,
   })
-  password: string;
+  password!: string;
 }

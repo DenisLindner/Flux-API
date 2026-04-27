@@ -89,9 +89,9 @@ export class FollowsService {
     }
 
     return await this.prisma.follow.findMany({
-      where: { followerId: id },
+      where: { followingId: id },
       select: {
-        following: {
+        follower: {
           select: {
             id: true,
             username: true,
@@ -110,9 +110,9 @@ export class FollowsService {
     }
 
     return await this.prisma.follow.findMany({
-      where: { followingId: id },
+      where: { followerId: id },
       select: {
-        follower: {
+        following: {
           select: {
             id: true,
             username: true,

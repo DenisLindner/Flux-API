@@ -4,7 +4,7 @@ export class CreatePostDTO {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  content: string;
+  content!: string;
 
   @IsString()
   @IsOptional()
