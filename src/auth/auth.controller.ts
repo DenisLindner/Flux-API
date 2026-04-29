@@ -11,12 +11,32 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() dto: CreateUserDTO) {
-    return this.service.register(dto);
+    const registerResult = await this.service.register(dto);
+
+    const token = registerResult.accessToken;
+
+    return {
+      message: 'Registrado com sucesso',
+      statusCode: 201,
+      data: {
+        access_token: token,
+      },
+    };
   }
 
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDTO) {
-    return this.service.login(dto);
+    const loginResult = await this.service.login(dto);
+
+    const token = loginResult.accessToken;
+
+    return {
+      message: 'Logado com sucesso',
+      statusCode: 200,
+      data: {
+        access_token: token,
+      },
+    };
   }
 }

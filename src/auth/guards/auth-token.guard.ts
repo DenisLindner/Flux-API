@@ -28,24 +28,25 @@ export class AuthTokenGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractToken(request);
 
     if (!token) {
-      throw new UnauthorizedException('Not logged in');
+      throw new UnauthorizedException('Usuário não logado');
     }
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
       request['user'] = payload;
     } catch {
-      throw new UnauthorizedException('Not logged in');
+      throw new UnauthorizedException('Usuário não logado');
     }
 
     return true;
   }
 
   private extractToken(req: Request): string | undefined {
-    return req.headers?.authorization?.split(' ')[1];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return req.cookies?.['auth-token'];
   }
 }

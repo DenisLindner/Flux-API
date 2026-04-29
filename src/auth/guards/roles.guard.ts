@@ -41,7 +41,7 @@ export class RolesGuard implements CanActivate {
     const contains = roles.includes(role);
 
     if (!contains) {
-      throw new ForbiddenException('Permission not granted');
+      throw new ForbiddenException('Usuário não autorizado');
     }
 
     return true;

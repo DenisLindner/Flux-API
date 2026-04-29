@@ -44,7 +44,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const followers = await this.prisma.follow.count({
@@ -61,14 +61,16 @@ export class UsersService {
     const user = await this.existsById(id);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     if (dto.username) {
       const userWithSameUsername = await this.findByUsername(dto.username);
 
       if (userWithSameUsername && userWithSameUsername.id !== id) {
-        throw new ConflictException('User already exists with this username');
+        throw new ConflictException(
+          'Usuário já existente com esse Nome de Usuário',
+        );
       }
     }
 
@@ -85,7 +87,7 @@ export class UsersService {
     const user = await this.existsById(id);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     await this.prisma.user.delete({ where: { id } });
@@ -95,13 +97,13 @@ export class UsersService {
     const authorRequest = await this.existsById(sub);
 
     if (!authorRequest) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const user = await this.existsById(id);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     await this.prisma.user.delete({ where: { id } });

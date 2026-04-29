@@ -22,7 +22,7 @@ export class AuthService {
     const existsWithEmail = await this.usersService.findByEmail(dto.email);
 
     if (existsWithEmail) {
-      throw new ConflictException('User already exists with this email');
+      throw new ConflictException('Usuário já existe com esse Email');
     }
 
     const existsWithUsername = await this.usersService.findByUsername(
@@ -30,7 +30,7 @@ export class AuthService {
     );
 
     if (existsWithUsername) {
-      throw new ConflictException('User already exists with this username');
+      throw new ConflictException('Usuário já existe com esse Nome de Usuário');
     }
 
     const passwordHash = await this.hashService.hash(dto.password);
@@ -53,13 +53,13 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user) {
-      throw new UnauthorizedException('Incorrect email or password');
+      throw new UnauthorizedException('Email ou Senha incorretos');
     }
 
     const compare = await this.hashService.compare(dto.password, user.password);
 
     if (!compare) {
-      throw new UnauthorizedException('Incorrect email or password');
+      throw new UnauthorizedException('Email ou Senha incorretos');
     }
 
     const accessToken = await this.generateToken(

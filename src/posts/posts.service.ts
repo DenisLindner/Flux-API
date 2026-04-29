@@ -21,14 +21,14 @@ export class PostsService {
     const user = await this.usersService.existsById(authorId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     if (dto.parentId) {
       const post = await this.existsById(dto.parentId);
 
       if (!post) {
-        throw new NotFoundException('Parent post not found');
+        throw new NotFoundException('Postagem pai não Encontrada');
       }
     }
 
@@ -102,7 +102,7 @@ export class PostsService {
     });
 
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw new NotFoundException('Postagem não Encontrada');
     }
 
     const comments = await this.countCommentars(id);
@@ -145,7 +145,7 @@ export class PostsService {
     const user = await this.usersService.existsById(id);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const posts = await this.prisma.post.findMany({
@@ -181,7 +181,7 @@ export class PostsService {
     const user = await this.usersService.existsById(id);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const posts = await this.prisma.post.findMany({
@@ -227,19 +227,19 @@ export class PostsService {
     const user = await this.usersService.existsById(authorRequestId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const post = await this.existsById(postId);
 
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw new NotFoundException('Postagem não Encontrada');
     }
 
     const compare = post.authorId === user.id;
 
     if (!compare) {
-      throw new ForbiddenException('This post is not your');
+      throw new ForbiddenException('A postagem não é sua');
     }
 
     return await this.prisma.post.update({
@@ -264,19 +264,19 @@ export class PostsService {
     const user = await this.usersService.existsById(authorRequestId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const post = await this.existsById(postId);
 
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw new NotFoundException('Postagem não Encontrada');
     }
 
     const compare = post.authorId === user.id;
 
     if (!compare) {
-      throw new ForbiddenException('This post is not your');
+      throw new ForbiddenException('A postagem não é sua');
     }
 
     await this.prisma.post.delete({ where: { id: postId } });
@@ -286,13 +286,13 @@ export class PostsService {
     const user = await this.usersService.existsById(authorRequestId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const post = await this.existsById(postId);
 
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw new NotFoundException('Postagem não Encontrada');
     }
 
     await this.prisma.post.delete({ where: { id: postId } });
@@ -316,13 +316,13 @@ export class PostsService {
     const user = await this.usersService.existsById(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const post = await this.existsById(postId);
 
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw new NotFoundException('Postagem não Encontrada');
     }
 
     const like = await this.prisma.like.findUnique({
@@ -330,7 +330,7 @@ export class PostsService {
     });
 
     if (like) {
-      throw new ConflictException('User has already liked the post');
+      throw new ConflictException('Usuário já curtiu essa Postagem');
     }
 
     await this.prisma.like.create({ data: { userId, postId } });
@@ -340,7 +340,7 @@ export class PostsService {
     const post = await this.existsById(postId);
 
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw new NotFoundException('Postagem não Encontrada');
     }
 
     return await this.prisma.like.count({ where: { postId } });
@@ -350,13 +350,13 @@ export class PostsService {
     const user = await this.usersService.existsById(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuário não Encontrado');
     }
 
     const post = await this.existsById(postId);
 
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw new NotFoundException('Postagem não Encontrada');
     }
 
     const like = await this.prisma.like.findUnique({
@@ -364,7 +364,7 @@ export class PostsService {
     });
 
     if (!like) {
-      throw new NotFoundException('Like not found');
+      throw new NotFoundException('Curtida não Encontrada');
     }
 
     await this.prisma.like.delete({
