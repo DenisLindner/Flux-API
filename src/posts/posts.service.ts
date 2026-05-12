@@ -52,7 +52,7 @@ export class PostsService {
     });
   }
 
-  async find30posts() {
+  async find30posts(userId: string) {
     const posts = await this.prisma.post.findMany({
       take: 30,
       orderBy: { createdAt: 'desc' },
@@ -76,13 +76,16 @@ export class PostsService {
         ...item,
         comments: await this.countCommentars(item.id),
         likes: await this.countLikesByPostId(item.id),
+        isLiked: await this.prisma.like.findUnique({
+          where: { userId_postId: { userId, postId: item.id } },
+        }),
       })),
     );
 
     return postsWithCommentsAndLikes;
   }
 
-  async findById(id: string) {
+  async findById(id: string, userId: string) {
     const post = await this.prisma.post.findUnique({
       where: {
         id,
@@ -107,11 +110,14 @@ export class PostsService {
 
     const comments = await this.countCommentars(id);
     const likes = await this.countLikesByPostId(id);
+    const isLiked = await this.prisma.like.findUnique({
+      where: { userId_postId: { userId, postId: id } },
+    });
 
-    return { ...post, comments, likes };
+    return { ...post, comments, likes, isLiked };
   }
 
-  async findCommentsById(id: string) {
+  async findCommentsById(id: string, userId: string) {
     const posts = await this.prisma.post.findMany({
       where: {
         parentId: id,
@@ -135,13 +141,20 @@ export class PostsService {
         ...item,
         comments: await this.countCommentars(item.id),
         likes: await this.countLikesByPostId(item.id),
+        isLiked: await this.prisma.like.findUnique({
+          where: { userId_postId: { userId, postId: item.id } },
+        }),
       })),
     );
 
     return postsWithCommentsAndLikes;
   }
 
-  async findPostsByUserId(id: string, pagination: PaginationDTO) {
+  async findPostsByUserId(
+    id: string,
+    pagination: PaginationDTO,
+    userId: string,
+  ) {
     const user = await this.usersService.existsById(id);
 
     if (!user) {
@@ -171,13 +184,60 @@ export class PostsService {
         ...item,
         comments: await this.countCommentars(item.id),
         likes: await this.countLikesByPostId(item.id),
+        isLiked: await this.prisma.like.findUnique({
+          where: { userId_postId: { userId, postId: item.id } },
+        }),
       })),
     );
 
     return postsWithCommentsAndLikes;
   }
 
-  async findCommentsByUserId(id: string, pagination: PaginationDTO) {
+  async findMyPosts(id: string, pagination: PaginationDTO) {
+    const user = await this.usersService.existsById(id);
+
+    if (!user) {
+      throw new NotFoundException('Usuário não Encontrado');
+    }
+
+    const posts = await this.prisma.post.findMany({
+      take: pagination.take,
+      skip: pagination.skip,
+      where: { authorId: id, parentId: null },
+      select: {
+        id: true,
+        content: true,
+        author: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    const postsWithCommentsAndLikes = await Promise.all(
+      posts.map(async (item) => ({
+        ...item,
+        comments: await this.countCommentars(item.id),
+        likes: await this.countLikesByPostId(item.id),
+        isLiked: await this.prisma.like.findUnique({
+          where: { userId_postId: { userId: id, postId: item.id } },
+          select: { userId: true, postId: true },
+        }),
+      })),
+    );
+
+    return postsWithCommentsAndLikes;
+  }
+
+  async findCommentsByUserId(
+    id: string,
+    pagination: PaginationDTO,
+    userId: string,
+  ) {
     const user = await this.usersService.existsById(id);
 
     if (!user) {
@@ -213,6 +273,56 @@ export class PostsService {
         ...item,
         comments: await this.countCommentars(item.id),
         likes: await this.countLikesByPostId(item.id),
+        isLiked: await this.prisma.like.findUnique({
+          where: { userId_postId: { userId, postId: item.id } },
+          select: { userId: true, postId: true },
+        }),
+      })),
+    );
+
+    return postsWithCommentsAndLikes;
+  }
+
+  async findMyComments(id: string, pagination: PaginationDTO) {
+    const user = await this.usersService.existsById(id);
+
+    if (!user) {
+      throw new NotFoundException('Usuário não Encontrado');
+    }
+
+    const posts = await this.prisma.post.findMany({
+      take: pagination.take,
+      skip: pagination.skip,
+      where: { authorId: id, parentId: { not: null } },
+      select: {
+        id: true,
+        content: true,
+        author: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+        parent: {
+          select: {
+            id: true,
+            content: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    const postsWithCommentsAndLikes = await Promise.all(
+      posts.map(async (item) => ({
+        ...item,
+        comments: await this.countCommentars(item.id),
+        likes: await this.countLikesByPostId(item.id),
+        isLiked: await this.prisma.like.findUnique({
+          where: { userId_postId: { userId: id, postId: item.id } },
+          select: { userId: true, postId: true },
+        }),
       })),
     );
 
@@ -279,23 +389,17 @@ export class PostsService {
       throw new ForbiddenException('A postagem não é sua');
     }
 
-    await this.prisma.post.delete({ where: { id: postId } });
+    return await this.prisma.post.delete({ where: { id: postId } });
   }
 
-  async deleteById(postId: string, authorRequestId: string) {
-    const user = await this.usersService.existsById(authorRequestId);
-
-    if (!user) {
-      throw new NotFoundException('Usuário não Encontrado');
-    }
-
+  async deleteById(postId: string) {
     const post = await this.existsById(postId);
 
     if (!post) {
       throw new NotFoundException('Postagem não Encontrada');
     }
 
-    await this.prisma.post.delete({ where: { id: postId } });
+    return await this.prisma.post.delete({ where: { id: postId } });
   }
 
   async countCommentars(id: string): Promise<number> {
@@ -334,6 +438,8 @@ export class PostsService {
     }
 
     await this.prisma.like.create({ data: { userId, postId } });
+
+    return { response: true };
   }
 
   async countLikesByPostId(postId: string) {
@@ -370,5 +476,7 @@ export class PostsService {
     await this.prisma.like.delete({
       where: { userId_postId: { userId, postId } },
     });
+
+    return { response: true };
   }
 }
