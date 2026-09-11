@@ -4,11 +4,9 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -22,31 +20,33 @@ async function bootstrap() {
     .setTitle('Flux API')
     .setDescription('Documentação Oficial da API do sistema Flux')
     .setVersion('1.0.0')
-    .addCookieAuth('auth-token')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'token',
+    )
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory, {
     swaggerOptions: {
-      requestInterceptor: (req) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        req.credentials = 'include'; // Permite o envio de cookies em requisições cross-origin
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return req;
-      },
-      persistAuthorization: true, // Mantém o estado de login ao atualizar a página
+      persistAuthorization: true,
     },
   });
 
-  const originString = process.env.ORIGIN || '';
-  const originsArray = originString.split(',').map((item) => item.trim());
+  const originsArray = (process.env.ORIGIN ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: originsArray,
+    origin: originsArray.length > 0 ? originsArray : true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
   });
   app.use(helmet());
 
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  await app.listen(process.env.PORT ?? 3333, '0.0.0.0');
 }
-bootstrap();
+void bootstrap();

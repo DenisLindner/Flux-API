@@ -2,7 +2,6 @@ import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { FollowsService } from './follows.service';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { CurrentUserDTO } from 'src/users/dto/current-user.dto';
-import { IsPublic } from 'src/auth/decorators/is-public.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller()
@@ -33,7 +32,6 @@ export class FollowsController {
   }
 
   @Get('followers/:id')
-  @IsPublic()
   async getUserFollowers(@Param('id') id: string) {
     return this.service.getUserFollowers(id);
   }
@@ -44,7 +42,6 @@ export class FollowsController {
   }
 
   @Get('following/:id')
-  @IsPublic()
   async getUserFollowing(@Param('id') id: string) {
     return this.service.getUserFollowing(id);
   }

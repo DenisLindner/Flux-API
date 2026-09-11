@@ -8,6 +8,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { FollowsModule } from './follows/follows.module';
 import { PostsModule } from './posts/posts.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     AuthModule,
     FollowsModule,
     PostsModule,
+    MessagesModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {

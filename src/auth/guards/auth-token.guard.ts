@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   CanActivate,
   ExecutionContext,
@@ -10,6 +8,10 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
+
+type AuthenticatedRequest = Request & {
+  user?: Record<string, unknown>;
+};
 
 @Injectable()
 export class AuthTokenGuard implements CanActivate {
@@ -28,7 +30,7 @@ export class AuthTokenGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.extractToken(request);
 
     if (!token) {
@@ -36,8 +38,9 @@ export class AuthTokenGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token);
-      request['user'] = payload;
+      const payload =
+        await this.jwtService.verifyAsync<Record<string, unknown>>(token);
+      request.user = payload;
     } catch {
       throw new UnauthorizedException('Usuário não logado');
     }
@@ -46,7 +49,14 @@ export class AuthTokenGuard implements CanActivate {
   }
 
   private extractToken(req: Request): string | undefined {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return req.cookies?.['auth-token'];
+    const authorization = req.headers.authorization;
+
+    if (!authorization) {
+      return undefined;
+    }
+
+    const [scheme, token] = authorization.split(' ');
+
+    return scheme === 'Bearer' && token ? token : undefined;
   }
 }

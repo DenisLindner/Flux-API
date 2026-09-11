@@ -2,6 +2,7 @@ import {
   IsLowercase,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   MaxLength,
   MinLength,
@@ -31,4 +32,13 @@ export class UpdateUserDTO {
   @MaxLength(60, { message: 'O Nome deve ter no máximo 60 caracteres' })
   @IsOptional()
   name?: string;
+
+  @IsOptional()
+  @IsUrl({}, { message: 'A URL do avatar deve ser válida' })
+  avatarUrl?: string;
+
+  @IsOptional()
+  @IsString({ message: 'A biografia deve ser um texto' })
+  @MaxLength(160, { message: 'A biografia deve ter no máximo 160 caracteres' })
+  bio?: string;
 }

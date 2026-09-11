@@ -44,6 +44,8 @@ export class FollowsService {
     }
 
     await this.prisma.follow.create({ data: { followerId, followingId } });
+
+    return { followingId, following: true };
   }
 
   async unfollowUser(followerId: string, followingId: string) {
@@ -81,6 +83,8 @@ export class FollowsService {
     await this.prisma.follow.delete({
       where: { followerId_followingId: { followerId, followingId } },
     });
+
+    return { followingId, following: false };
   }
 
   async getUserFollowers(id: string) {
@@ -90,7 +94,7 @@ export class FollowsService {
       throw new NotFoundException('Usuário não Encontrado');
     }
 
-    return await this.prisma.follow.findMany({
+    const follows = await this.prisma.follow.findMany({
       where: { followingId: id },
       select: {
         follower: {
@@ -98,10 +102,13 @@ export class FollowsService {
             id: true,
             username: true,
             name: true,
+            avatarUrl: true,
           },
         },
       },
     });
+
+    return follows.map(({ follower }) => follower);
   }
 
   async getUserFollowing(id: string) {
@@ -111,7 +118,7 @@ export class FollowsService {
       throw new NotFoundException('Usuário não Encontrado');
     }
 
-    return await this.prisma.follow.findMany({
+    const follows = await this.prisma.follow.findMany({
       where: { followerId: id },
       select: {
         following: {
@@ -119,9 +126,12 @@ export class FollowsService {
             id: true,
             username: true,
             name: true,
+            avatarUrl: true,
           },
         },
       },
     });
+
+    return follows.map(({ following }) => following);
   }
 }

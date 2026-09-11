@@ -13,7 +13,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDTO } from './dto/create-post.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/role.decorator';
-import { PaginationDTO } from './dto/pagination.dto';
+import { PaginationDTO } from 'src/common/dto/pagination.dto';
 import { UpdatePostDTO } from './dto/update-user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
@@ -27,9 +27,12 @@ export class PostsController {
     return this.service.create(dto, sub);
   }
 
-  @Get('feed/recent-posts')
-  async findLast30Posts(@CurrentUser('sub') userId: string) {
-    return this.service.find30posts(userId);
+  @Get('feed')
+  async findFeed(
+    @CurrentUser('sub') userId: string,
+    @Query() pagination: PaginationDTO,
+  ) {
+    return this.service.findFeed(userId, pagination);
   }
 
   @Get('user/me')
@@ -52,8 +55,9 @@ export class PostsController {
   async getCommentsByPostId(
     @Param('id') id: string,
     @CurrentUser('sub') userId: string,
+    @Query() pagination: PaginationDTO,
   ) {
-    return this.service.findCommentsById(id, userId);
+    return this.service.findCommentsById(id, userId, pagination);
   }
 
   @Get('user/:id')
