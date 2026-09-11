@@ -7,7 +7,7 @@ Backend educacional de uma rede social interna. A API oferece autenticação, pe
 - TypeScript e NestJS
 - PostgreSQL e Prisma ORM
 - JWT Bearer e bcrypt
-- Swagger em `/api`
+- Swagger em `/docs`
 
 ## Executar localmente
 
@@ -32,7 +32,7 @@ Backend educacional de uma rede social interna. A API oferece autenticação, pe
    npm run dev
    ```
 
-A API fica disponível em `http://localhost:3333` e a documentação em `http://localhost:3333/api`.
+A API fica disponível em `http://localhost:3333/api` e a documentação em `http://localhost:3333/docs`.
 
 ## Autenticação
 
@@ -44,14 +44,14 @@ Authorization: Bearer <access_token>
 
 ## Rotas principais
 
-| Recurso             | Rotas                                                                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------- |
-| Autenticação        | `POST /auth/register`, `POST /auth/login`                                                      |
-| Perfil e pesquisa   | `GET /users/me`, `GET /users/search?q=ana`, `GET /users/:id`, `PATCH /users/me`                |
-| Feed e posts        | `GET /posts/feed`, `POST /posts`, `GET /posts/:id`, `PATCH /posts/:id`, `DELETE /posts/me/:id` |
-| Comentários e likes | `GET /posts/comments/:id`, `POST /posts/like/:id`, `DELETE /posts/unlike/:id`                  |
-| Seguidores          | `POST /follow/:id`, `POST /unfollow/:id`, `GET /followers/:id`, `GET /following/:id`           |
-| Mensagens           | `GET /messages`, `GET /messages/:userId`, `POST /messages/:userId`                             |
+| Recurso             | Rotas                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Autenticação        | `POST /api/auth/register`, `POST /api/auth/login`                                                                  |
+| Perfil e pesquisa   | `GET /api/users/me`, `GET /api/users/search?q=ana`, `GET /api/users/:id`, `PATCH /api/users/me`                    |
+| Feed e posts        | `GET /api/posts/feed`, `POST /api/posts`, `GET /api/posts/:id`, `PATCH /api/posts/:id`, `DELETE /api/posts/me/:id` |
+| Comentários e likes | `GET /api/posts/comments/:id`, `POST /api/posts/like/:id`, `DELETE /api/posts/unlike/:id`                          |
+| Seguidores          | `POST /api/follow/:id`, `POST /api/unfollow/:id`, `GET /api/followers/:id`, `GET /api/following/:id`               |
+| Mensagens           | `GET /api/messages`, `GET /api/messages/:userId`, `POST /api/messages/:userId`                                     |
 
 Listagens aceitam `take` e `skip`. O limite máximo de `take` é 50.
 
