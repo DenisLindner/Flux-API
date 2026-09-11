@@ -19,11 +19,10 @@ Backend educacional de uma rede social interna. A API oferece autenticação, pe
 
 2. Copie `.env.example` para `.env` e ajuste `DATABASE_URL` para o seu PostgreSQL local.
 
-3. Crie as tabelas e os dados de demonstração:
+3. Crie as tabelas:
 
    ```bash
    npm run db:migrate
-   npm run db:seed
    ```
 
 4. Inicie a API:
@@ -55,6 +54,6 @@ Authorization: Bearer <access_token>
 
 Listagens aceitam `take` e `skip`. O limite máximo de `take` é 50.
 
-## Dados de demonstração
+## Cadastro
 
-O seed cria `admin@flux.local`, `ana@flux.local` e `bruno@flux.local`. A senha para todas as contas é `Flux@123`.
+O cadastro é permitido apenas para endereços de email que terminam em `@weg.net`.

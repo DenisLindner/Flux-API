@@ -35,6 +35,9 @@ export class CreateUserDTO {
   name!: string;
 
   @IsEmail({}, { message: 'O Email deve ser um email válido' })
+  @Matches(/@weg\.net$/i, {
+    message: 'O Email deve ser um Email da WEG',
+  })
   email!: string;
 
   @IsStrongPassword(
