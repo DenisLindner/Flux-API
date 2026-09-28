@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -14,6 +15,7 @@ import { UpdatePostDTO } from './dto/update-user.dto';
 const postSelect = {
   id: true,
   content: true,
+  imageMimeType: true,
   parentId: true,
   authorId: true,
   author: {
@@ -42,6 +44,13 @@ const postSelect = {
 
 type PostWithDetails = Prisma.PostGetPayload<{ select: typeof postSelect }>;
 
+export type PostImageFile = {
+  buffer: Buffer;
+  mimetype: string;
+};
+
+const maxImageSize = 5 * 1024 * 1024;
+
 @Injectable()
 export class PostsService {
   constructor(
@@ -49,18 +58,32 @@ export class PostsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(dto: CreatePostDTO, authorId: string) {
+  async create(dto: CreatePostDTO, authorId: string, image?: PostImageFile) {
     await this.ensureUserExists(authorId);
 
-    if (dto.parentId) {
+    const content = dto.content?.trim() ?? '';
+
+    if (dto.parentId !== undefined) {
+      if (!content) {
+        throw new BadRequestException('O comentário não pode ser vazio');
+      }
+      if (image) {
+        throw new BadRequestException('Comentários não aceitam imagem');
+      }
       await this.ensurePostExists(dto.parentId, 'Postagem pai não encontrada');
+    } else if (!image) {
+      throw new BadRequestException('A imagem da postagem é obrigatória');
     }
+
+    const imageMimeType = image ? this.validateImage(image) : null;
 
     const post = await this.prisma.post.create({
       data: {
-        content: dto.content,
+        content,
         parentId: dto.parentId,
         authorId,
+        imageData: image ? Uint8Array.from(image.buffer) : null,
+        imageMimeType,
       },
       select: postSelect,
     });
@@ -93,6 +116,19 @@ export class PostsService {
     const likedPostIds = await this.findLikedPostIds([post.id], userId);
 
     return this.toPostResponse(post, likedPostIds);
+  }
+
+  async findImageByPostId(id: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      select: { imageData: true, imageMimeType: true },
+    });
+
+    if (!post?.imageData || !post.imageMimeType) {
+      throw new NotFoundException('Imagem não encontrada');
+    }
+
+    return { data: post.imageData, mimeType: post.imageMimeType };
   }
 
   async findCommentsById(
@@ -164,9 +200,14 @@ export class PostsService {
       throw new ForbiddenException('A postagem não é sua');
     }
 
+    const content = dto.content?.trim();
+    if (post.parentId !== null && content === '') {
+      throw new BadRequestException('O comentário não pode ser vazio');
+    }
+
     const updatedPost = await this.prisma.post.update({
       where: { id: postId },
-      data: { content: dto.content },
+      data: { content },
       select: postSelect,
     });
 
@@ -261,14 +302,50 @@ export class PostsService {
   }
 
   private toPostResponse(post: PostWithDetails, likedPostIds: Set<string>) {
-    const { _count, ...postData } = post;
+    const { _count, imageMimeType, ...postData } = post;
 
     return {
       ...postData,
+      imageUrl: imageMimeType ? `/api/posts/${post.id}/image` : null,
       comments: _count.children,
       likes: _count.likes,
       isLiked: likedPostIds.has(post.id),
     };
+  }
+
+  private validateImage(image: PostImageFile) {
+    const data = image.buffer;
+    if (data.length > maxImageSize) {
+      throw new BadRequestException('A imagem deve ter no máximo 5 MB');
+    }
+
+    const isJpeg =
+      data.length >= 3 &&
+      data.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]));
+    const isPng =
+      data.length >= 8 &&
+      data
+        .subarray(0, 8)
+        .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    const isWebp =
+      data.length >= 12 &&
+      data.toString('ascii', 0, 4) === 'RIFF' &&
+      data.toString('ascii', 8, 12) === 'WEBP';
+    const detectedMimeType = isJpeg
+      ? 'image/jpeg'
+      : isPng
+        ? 'image/png'
+        : isWebp
+          ? 'image/webp'
+          : null;
+
+    if (!detectedMimeType || detectedMimeType !== image.mimetype) {
+      throw new BadRequestException(
+        'Envie uma imagem JPEG, PNG ou WebP válida',
+      );
+    }
+
+    return detectedMimeType;
   }
 
   private async ensureUserExists(id: string) {
@@ -285,7 +362,7 @@ export class PostsService {
   ) {
     const post = await this.prisma.post.findUnique({
       where: { id },
-      select: { id: true, authorId: true },
+      select: { id: true, authorId: true, parentId: true },
     });
 
     if (!post) {

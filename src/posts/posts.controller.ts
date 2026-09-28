@@ -8,14 +8,26 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { PostsService } from './posts.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiProduces,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import type { Response } from 'express';
+import { PostsService, type PostImageFile } from './posts.service';
 import { CreatePostDTO } from './dto/create-post.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { PaginationDTO } from 'src/common/dto/pagination.dto';
 import { UpdatePostDTO } from './dto/update-user.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('posts')
 @ApiBearerAuth('token')
@@ -23,8 +35,38 @@ export class PostsController {
   constructor(private readonly service: PostsService) {}
 
   @Post()
-  async create(@Body() dto: CreatePostDTO, @CurrentUser('sub') sub: string) {
-    return this.service.create(dto, sub);
+  @UseInterceptors(
+    FileInterceptor('image', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiBody({
+    schema: {
+      oneOf: [
+        {
+          type: 'object',
+          required: ['image'],
+          properties: {
+            image: { type: 'string', format: 'binary' },
+            content: { type: 'string', maxLength: 255 },
+          },
+        },
+        {
+          type: 'object',
+          required: ['parentId', 'content'],
+          properties: {
+            parentId: { type: 'string' },
+            content: { type: 'string', maxLength: 255 },
+          },
+        },
+      ],
+    },
+  })
+  async create(
+    @Body() dto: CreatePostDTO,
+    @CurrentUser('sub') sub: string,
+    @UploadedFile() image?: PostImageFile,
+  ) {
+    return this.service.create(dto, sub, image);
   }
 
   @Get('feed')
@@ -76,6 +118,16 @@ export class PostsController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.service.findCommentsByUserId(id, pagination, userId);
+  }
+
+  @Get(':id/image')
+  @Throttle({ default: { limit: 60, ttl: 6000 } })
+  @ApiProduces('image/jpeg', 'image/png', 'image/webp')
+  @ApiOkResponse({ schema: { type: 'string', format: 'binary' } })
+  async getImage(@Param('id') id: string, @Res() response: Response) {
+    const image = await this.service.findImageByPostId(id);
+    response.setHeader('Content-Type', image.mimeType);
+    response.send(Buffer.from(image.data));
   }
 
   @Get(':id')

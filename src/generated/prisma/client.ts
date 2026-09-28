@@ -59,8 +59,8 @@ export type Post = Prisma.PostModel
  * 
  */
 export type Like = Prisma.LikeModel
- /**
-  * Model Message
-  *
-  */
+/**
+ * Model Message
+ * 
+ */
 export type Message = Prisma.MessageModel

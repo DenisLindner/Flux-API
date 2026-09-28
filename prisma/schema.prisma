@@ -47,7 +47,9 @@ model Follow {
 
 model Post {
   id String @id @default(ulid()) @unique
-  content String
+  content String @default("")
+  imageData Bytes?
+  imageMimeType String?
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   authorId String
   parentId String?
