@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,6 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { SearchUsersDTO } from './dto/search-users.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
+import { type ImageFile, validateImage } from 'src/common/images';
 
 type ProfileWithCounts = {
   id: string;
@@ -135,6 +137,51 @@ export class UsersService {
     return this.findMeById(id);
   }
 
+  async updateAvatar(id: string, image?: ImageFile) {
+    if (!image) {
+      throw new BadRequestException('Envie uma foto para o perfil');
+    }
+
+    await this.ensureUserExists(id);
+    const avatarMimeType = validateImage(image);
+
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        avatarData: Uint8Array.from(image.buffer),
+        avatarMimeType,
+        // A versão na URL invalida o cache das imagens já baixadas pelo app.
+        avatarUrl: `/api/users/${id}/avatar?v=${Date.now()}`,
+      },
+    });
+
+    return this.findMeById(id);
+  }
+
+  async removeAvatar(id: string) {
+    await this.ensureUserExists(id);
+
+    await this.prisma.user.update({
+      where: { id },
+      data: { avatarData: null, avatarMimeType: null, avatarUrl: null },
+    });
+
+    return this.findMeById(id);
+  }
+
+  async findAvatarByUserId(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { avatarData: true, avatarMimeType: true },
+    });
+
+    if (!user?.avatarData || !user.avatarMimeType) {
+      throw new NotFoundException('Foto de perfil não encontrada');
+    }
+
+    return { data: user.avatarData, mimeType: user.avatarMimeType };
+  }
+
   async deleteMyUser(id: string) {
     await this.ensureUserExists(id);
     await this.prisma.user.delete({ where: { id } });
@@ -174,10 +221,13 @@ export class UsersService {
   private toProfile(user: ProfileWithCounts) {
     const { _count, ...profile } = user;
 
+    // A relação `followers` do Prisma contém as linhas em que o usuário é o
+    // seguidor (ou seja, quem ele segue), e `following` as linhas em que ele é
+    // seguido. Os contadores são invertidos para refletir o significado da API.
     return {
       ...profile,
-      followers: _count.followers,
-      following: _count.following,
+      followers: _count.following,
+      following: _count.followers,
     };
   }
 

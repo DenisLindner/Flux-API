@@ -471,10 +471,6 @@ export type PostUncheckedCreateNestedManyWithoutParentInput = {
   connect?: Prisma.PostWhereUniqueInput | Prisma.PostWhereUniqueInput[]
 }
 
-export type NullableBytesFieldUpdateOperationsInput = {
-  set?: runtime.Bytes | null
-}
-
 export type PostUpdateOneWithoutChildrenNestedInput = {
   create?: Prisma.XOR<Prisma.PostCreateWithoutChildrenInput, Prisma.PostUncheckedCreateWithoutChildrenInput>
   connectOrCreate?: Prisma.PostCreateOrConnectWithoutChildrenInput

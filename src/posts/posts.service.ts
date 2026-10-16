@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 import { PaginationDTO } from 'src/common/dto/pagination.dto';
 import { CreatePostDTO } from './dto/create-post.dto';
 import { UpdatePostDTO } from './dto/update-user.dto';
+import { type ImageFile, validateImage } from 'src/common/images';
 
 const postSelect = {
   id: true,
@@ -44,12 +45,7 @@ const postSelect = {
 
 type PostWithDetails = Prisma.PostGetPayload<{ select: typeof postSelect }>;
 
-export type PostImageFile = {
-  buffer: Buffer;
-  mimetype: string;
-};
-
-const maxImageSize = 5 * 1024 * 1024;
+export type PostImageFile = ImageFile;
 
 @Injectable()
 export class PostsService {
@@ -75,7 +71,7 @@ export class PostsService {
       throw new BadRequestException('A imagem da postagem é obrigatória');
     }
 
-    const imageMimeType = image ? this.validateImage(image) : null;
+    const imageMimeType = image ? validateImage(image) : null;
 
     const post = await this.prisma.post.create({
       data: {
@@ -311,41 +307,6 @@ export class PostsService {
       likes: _count.likes,
       isLiked: likedPostIds.has(post.id),
     };
-  }
-
-  private validateImage(image: PostImageFile) {
-    const data = image.buffer;
-    if (data.length > maxImageSize) {
-      throw new BadRequestException('A imagem deve ter no máximo 5 MB');
-    }
-
-    const isJpeg =
-      data.length >= 3 &&
-      data.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]));
-    const isPng =
-      data.length >= 8 &&
-      data
-        .subarray(0, 8)
-        .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
-    const isWebp =
-      data.length >= 12 &&
-      data.toString('ascii', 0, 4) === 'RIFF' &&
-      data.toString('ascii', 8, 12) === 'WEBP';
-    const detectedMimeType = isJpeg
-      ? 'image/jpeg'
-      : isPng
-        ? 'image/png'
-        : isWebp
-          ? 'image/webp'
-          : null;
-
-    if (!detectedMimeType || detectedMimeType !== image.mimetype) {
-      throw new BadRequestException(
-        'Envie uma imagem JPEG, PNG ou WebP válida',
-      );
-    }
-
-    return detectedMimeType;
   }
 
   private async ensureUserExists(id: string) {

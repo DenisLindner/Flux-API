@@ -82,6 +82,8 @@ export const UserScalarFieldEnum = {
   password: 'password',
   role: 'role',
   avatarUrl: 'avatarUrl',
+  avatarData: 'avatarData',
+  avatarMimeType: 'avatarMimeType',
   bio: 'bio',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -125,7 +127,9 @@ export const MessageScalarFieldEnum = {
   content: 'content',
   senderId: 'senderId',
   receiverId: 'receiverId',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  readAt: 'readAt',
+  deletedAt: 'deletedAt'
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
